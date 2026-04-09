@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"gofermart/internal/handlers"
+	"gofermart/internal/storage"
 	"net/http"
 	"os"
 
@@ -31,14 +32,17 @@ func main() {
 	router.Logger.SetOutput(file)
 	if err := godotenv.Load(); err != nil {
 		router.Logger.Fatal(err)
-		return
+	}
+
+	DBURL := os.Getenv("DBURL")
+	if err = storage.RunMigrations(DBURL, ""); err != nil {
+		router.Logger.Fatal(err)
 	}
 
 	credentials := os.Getenv("credentials")
 	err = router.DBInit(credentials)
 	if err != nil {
 		router.Logger.Fatal(err)
-		return
 	}
 
 	router.Logger.Info("Run ", addr)
